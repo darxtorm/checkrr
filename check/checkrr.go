@@ -30,6 +30,7 @@ type Checkrr struct {
 	csv           features.CSV
 	notifications notifications.Notifications
 	sonarr        []connections.Sonarr
+	whisparr      []connections.Sonarr // After talking with the starr devs, this has basically worked for unpackarr without problems. We'll follow their lead until golift/starr#127 is completed
 	radarr        []connections.Radarr
 	lidarr        []connections.Lidarr
 	ignoreExts    []string
@@ -194,6 +195,16 @@ func (c *Checkrr) connectServices() {
 						c.sonarr = append(c.sonarr, sonarr)
 					}
 				}
+				// For now, this uses the sonarr connection logic. Seemingly it works according to Captain.
+				if config.GetString("service") == "whisparr" {
+					whisparr := connections.Sonarr{}
+					whisparr.FromConfig(config)
+					whisparrConnected, whisparrMessage := whisparr.Connect()
+					log.WithFields(log.Fields{"Startup": true, fmt.Sprintf("Whisparr \"%s\" Connected", k): whisparrConnected}).Info(whisparrMessage)
+					if whisparrConnected {
+						c.whisparr = append(c.whisparr, whisparr)
+					}
+				}
 
 				if config.GetString("service") == "radarr" {
 					radarr := connections.Radarr{}
@@ -304,6 +315,16 @@ func (c *Checkrr) deleteFile(path string) {
 			c.Stats.SonarrSubmissions++
 			c.Stats.Write("Sonarr", c.Stats.SonarrSubmissions)
 			c.recordBadFile(path, "sonarr")
+			return
+		}
+	}
+	for _, whisparr := range c.whisparr {
+		if whisparr.Process && whisparr.MatchPath(path) {
+			whisparr.RemoveFile(path)
+			c.notifications.Notify("File Reacquire", fmt.Sprintf("\"%v\" was sent to whisparr to be reacquired", path), "reacquire", path)
+			c.Stats.WhisparrSubmissions++
+			c.Stats.Write("Whisparr", c.Stats.WhisparrSubmissions)
+			c.recordBadFile(path, "whisparr")
 			return
 		}
 	}

@@ -18,29 +18,30 @@ import (
 )
 
 type Stats struct {
-	influxdb1         influxdb2.Client     `json:"-"`
-	writeAPI1         api.WriteAPIBlocking `json:"-"`
-	influxdb2         influxdb2.Client     `json:"-"`
-	writeAPI2         api.WriteAPIBlocking `json:"-"`
-	config            viper.Viper          `json:"-"`
-	Log               log.Logger           `json:"-"`
-	splunk            Splunk               `json:"-"`
-	splunkConfigured  bool                 `json:"-"`
-	SonarrSubmissions uint64               `json:"sonarrSubmissions"`
-	RadarrSubmissions uint64               `json:"radarrSubmissions"`
-	LidarrSubmissions uint64               `json:"lidarrSubmissions"`
-	FilesChecked      uint64               `json:"filesChecked"`
-	HashMatches       uint64               `json:"hashMatches"`
-	HashMismatches    uint64               `json:"hashMismatches"`
-	VideoFiles        uint64               `json:"videoFiles"`
-	AudioFiles        uint64               `json:"audioFiles"`
-	UnknownFileCount  uint64               `json:"unknownFileCount"`
-	NonVideo          uint64               `json:"nonVideo"`
-	Running           bool                 `json:"running"`
-	startTime         time.Time            `json:"-"`
-	endTime           time.Time            `json:"-"`
-	Diff              time.Duration        `json:"timeDiff"`
-	DB                *bolt.DB             `json:"-"`
+	influxdb1           influxdb2.Client     `json:"-"`
+	writeAPI1           api.WriteAPIBlocking `json:"-"`
+	influxdb2           influxdb2.Client     `json:"-"`
+	writeAPI2           api.WriteAPIBlocking `json:"-"`
+	config              viper.Viper          `json:"-"`
+	Log                 log.Logger           `json:"-"`
+	splunk              Splunk               `json:"-"`
+	splunkConfigured    bool                 `json:"-"`
+	SonarrSubmissions   uint64               `json:"sonarrSubmissions,omitempty"`
+	WhisparrSubmissions uint64               `json:"whisparrSubmissions,omitempty"`
+	RadarrSubmissions   uint64               `json:"radarrSubmissions,omitempty"`
+	LidarrSubmissions   uint64               `json:"lidarrSubmissions,omitempty"`
+	FilesChecked        uint64               `json:"filesChecked"`
+	HashMatches         uint64               `json:"hashMatches"`
+	HashMismatches      uint64               `json:"hashMismatches"`
+	VideoFiles          uint64               `json:"videoFiles"`
+	AudioFiles          uint64               `json:"audioFiles"`
+	UnknownFileCount    uint64               `json:"unknownFileCount"`
+	NonVideo            uint64               `json:"nonVideo"`
+	Running             bool                 `json:"running"`
+	startTime           time.Time            `json:"-"`
+	endTime             time.Time            `json:"-"`
+	Diff                time.Duration        `json:"timeDiff"`
+	DB                  *bolt.DB             `json:"-"`
 }
 
 type SplunkStats struct {
@@ -50,16 +51,17 @@ type SplunkStats struct {
 }
 
 type SplunkFields struct {
-	SonarrSubmissions uint64 `json:"metric_name:checkrr.sonarrSubmissions"`
-	RadarrSubmissions uint64 `json:"metric_name:checkrr.radarrSubmissions"`
-	LidarrSubmissions uint64 `json:"metric_name:checkrr.lidarrSubmissions"`
-	FilesChecked      uint64 `json:"metric_name:checkrr.filesChecked"`
-	HashMatches       uint64 `json:"metric_name:checkrr.hashMatches"`
-	HashMismatches    uint64 `json:"metric_name:checkrr.hashMismatches"`
-	VideoFiles        uint64 `json:"metric_name:checkrr.videoFiles"`
-	AudioFiles        uint64 `json:"metric_name:checkrr.audioFiles"`
-	UnknownFileCount  uint64 `json:"metric_name:checkrr.unknownFileCount"`
-	NonVideo          uint64 `json:"metric_name:checkrr.nonVideo"`
+	SonarrSubmissions   uint64 `json:"metric_name:checkrr.sonarrSubmissions,omitempty"`
+	WhisparrSubmissions uint64 `json:"metric_name:checkrr.sonarrSubmissions,omitempty"`
+	RadarrSubmissions   uint64 `json:"metric_name:checkrr.radarrSubmissions,omitempty"`
+	LidarrSubmissions   uint64 `json:"metric_name:checkrr.lidarrSubmissions,omitempty"`
+	FilesChecked        uint64 `json:"metric_name:checkrr.filesChecked"`
+	HashMatches         uint64 `json:"metric_name:checkrr.hashMatches"`
+	HashMismatches      uint64 `json:"metric_name:checkrr.hashMismatches"`
+	VideoFiles          uint64 `json:"metric_name:checkrr.videoFiles"`
+	AudioFiles          uint64 `json:"metric_name:checkrr.audioFiles"`
+	UnknownFileCount    uint64 `json:"metric_name:checkrr.unknownFileCount"`
+	NonVideo            uint64 `json:"metric_name:checkrr.nonVideo"`
 }
 
 type Splunk struct {
@@ -157,6 +159,7 @@ func (s *Stats) Render() {
 		{"Hash Matches", s.HashMatches},
 		{"Hashes Mismatched", s.HashMismatches},
 		{"Submitted to Sonarr", s.SonarrSubmissions},
+		{"Submitted to Whisparr", s.WhisparrSubmissions},
 		{"Submitted to Radarr", s.RadarrSubmissions},
 		{"Submitted to Lidarr", s.LidarrSubmissions},
 		{"Video Files", s.VideoFiles},
@@ -189,7 +192,7 @@ func (s *Stats) Write(field string, count uint64) {
 	if s.splunkConfigured {
 		t := time.Now().Unix()
 		splunkfields := SplunkFields{FilesChecked: s.FilesChecked, HashMatches: s.HashMatches, HashMismatches: s.HashMismatches,
-			SonarrSubmissions: s.SonarrSubmissions, RadarrSubmissions: s.RadarrSubmissions, LidarrSubmissions: s.LidarrSubmissions,
+			SonarrSubmissions: s.SonarrSubmissions, WhisparrSubmissions: s.WhisparrSubmissions, RadarrSubmissions: s.RadarrSubmissions, LidarrSubmissions: s.LidarrSubmissions,
 			VideoFiles: s.VideoFiles, NonVideo: s.NonVideo, AudioFiles: s.AudioFiles, UnknownFileCount: s.UnknownFileCount}
 		splunkstats := SplunkStats{Event: "metric", Time: t, Fields: &splunkfields}
 		go func(splunkstats SplunkStats) {

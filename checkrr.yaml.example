@@ -56,6 +56,15 @@ arr:
     port: 8888
     mappings:
       "/mnt/user/anime/": "/anime/"
+  whisparr:
+    process: false
+    service: whisparr
+    address: 127.0.0.1
+    apikey: ""
+    baseurl: /
+    port: 6969
+    mappings:
+      "/mnt/user/xxx/": "/xxx/"
   lidarr:
     process: false
     service: lidarr

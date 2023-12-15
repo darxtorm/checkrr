@@ -271,9 +271,10 @@ type badFileData struct {
 }
 
 type Stats struct {
-	SonarrSubmissions uint64        `json:"sonarrSubmissions"`
-	RadarrSubmissions uint64        `json:"radarrSubmissions"`
-	LidarrSubmissions uint64        `json:"lidarrSubmissions"`
+	SonarrSubmissions uint64        `json:"sonarrSubmissions,omitempty"`
+	WhisparrSubmissions uint64        `json:"whisparrSubmissions,omitempty"`
+	RadarrSubmissions uint64        `json:"radarrSubmissions,omitempty"`
+	LidarrSubmissions uint64        `json:"lidarrSubmissions,omitempty"`
 	FilesChecked      uint64        `json:"filesChecked"`
 	HashMatches       uint64        `json:"hashMatches"`
 	HashMismatches    uint64        `json:"hashMismatches"`
